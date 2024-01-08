@@ -6,9 +6,10 @@ function analyzeSpeed(carSpeed) {
     if (carSpeed <= 70) {
         speedAnalysis.textContent = 'OK.'
     } else {
-        // let overTheLimit = carSpeed - 70
         let demeritPoints = Math.floor((carSpeed - 70) / 5)
-        speedAnalysis.textContent = `Demerit Points: ${demeritPoints}`
+        demeritPoints > 12
+            ? (speedAnalysis.textContent = 'Licence suspended.')
+            : (speedAnalysis.textContent = `Demerit Points: ${demeritPoints}`)
     }
 }
 
