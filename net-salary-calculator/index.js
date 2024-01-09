@@ -27,7 +27,7 @@ function getIncomeTax(taxablePay) {
     let tempTaxablePay = taxablePay
 
     //Get 10% for taxable income up to 24000 & store it
-    if (taxablePay > 24000) {
+    if (tempTaxablePay > 24000) {
         incomeTax += 2400
         tempTaxablePay -= 24000
     } else {
@@ -36,77 +36,94 @@ function getIncomeTax(taxablePay) {
     }
 
     //Get 25% for taxable income up to 32333 & store it
-    incomeTax += Math.round(tempTaxablePay * 0.25)
-
-    if (tempTaxablePay <= 32333) {
-        return incomeTax
+    if (tempTaxablePay > 32333) {
+        incomeTax += 2083
+        tempTaxablePay -= 8333
     } else {
-        tempTaxablePay -= 32333
+        incomeTax += Math.round(tempTaxablePay * 0.25)
+        return incomeTax
     }
 
     //Get 30% for taxable income up to 500000 & store it
-    incomeTax += Math.round(tempTaxablePay * 0.3)
-
-    if (tempTaxablePay <= 500000) {
-        return incomeTax
+    if (tempTaxablePay > 500000) {
+        incomeTax += 140300
+        tempTaxablePay -= 467667
     } else {
-        tempTaxablePay -= 500000
+        incomeTax += Math.round(tempTaxablePay * 0.3)
+        return incomeTax
     }
 
-    //Get 32.5% for taxable income up to 800000 & store it
-    incomeTax += Math.round(taxablePay * 0.325)
-
-    if (tempTaxablePay <= 800000) {
-        return incomeTax
+    //Get 32.5% for taxable income up to the next 300000 & store it
+    if (tempTaxablePay > 300000) {
+        incomeTax += 97500
+        tempTaxablePay -= 300000
     } else {
-        tempTaxablePay -= 800000
+        incomeTax += Math.round(tempTaxablePay * 0.325)
+        return incomeTax
     }
 
     //Get 35% for taxable income above 800000 & store it
-    incomeTax += Math.round(taxablePay * 0.35)
+    incomeTax += Math.round(tempTaxablePay * 0.35)
     return incomeTax
 }
 
 //Calculate NHIF rate for gross pay
-function getNhifDeduction(grossSalary) {
+//This function checks if a number is within a given range
+function salaryInRange(grossSalary, min, max) {
+    if (grossSalary >= min && grossSalary <= max) {
+        return true
+    } else {
+        return false
+    }
+}
+
+const getNhifDeduction = (grossSalary) => {
     let nhifRate
 
-    if (grossSalary <= 5999) {
-        nhifRate = 150
-    } else if (grossSalary >= 6000 && grossSalary <= 7999) {
-        nhifRate = 300
-    } else if (grossSalary >= 8000 && grossSalary <= 11999) {
-        nhifRate = 400
-    } else if (grossSalary >= 12000 && grossSalary <= 14999) {
-        nhifRate = 500
-    } else if (grossSalary >= 15000 && grossSalary <= 19999) {
-        nhifRate = 600
-    } else if (grossSalary >= 20000 && grossSalary <= 24999) {
-        nhifRate = 750
-    } else if (grossSalary >= 25000 && grossSalary <= 29999) {
-        nhifRate = 850
-    } else if (grossSalary >= 30000 && grossSalary <= 34999) {
-        nhifRate = 900
-    } else if (grossSalary >= 35000 && grossSalary <= 39999) {
-        nhifRate = 950
-    } else if (grossSalary >= 40000 && grossSalary <= 44999) {
-        nhifRate = 1000
-    } else if (grossSalary >= 45000 && grossSalary <= 49999) {
-        nhifRate = 1100
-    } else if (grossSalary >= 50000 && grossSalary <= 59999) {
-        nhifRate = 1200
-    } else if (grossSalary >= 60000 && grossSalary <= 69999) {
-        nhifRate = 1300
-    } else if (grossSalary >= 70000 && grossSalary <= 79999) {
-        nhifRate = 1400
-    } else if (grossSalary >= 80000 && grossSalary <= 89999) {
-        nhifRate = 1500
-    } else if (grossSalary >= 90000 && grossSalary <= 99999) {
-        nhifRate = 1600
-    } else {
-        nhifRate = 1700
+    //If the gross salary is greater than 99999, the NHIF rate is a standard 1700
+    //so the function can end here
+    if (grossSalary > 99999) {
+        return (nhifRate = 1700)
     }
 
+    //Put the definite NHIF rates in an object with the various ranges as keys
+    //Manipulate the object to find the correct salary range and NHIF rate
+    const nhifRanges = {
+        '0 - 5999': 150,
+        '6000 - 7999': 300,
+        '8000 - 11999': 400,
+        '12000 - 14999': 500,
+        '15000 - 19999': 600,
+        '20000 - 24999': 750,
+        '25000 - 29999': 850,
+        '30000 - 34999': 900,
+        '35000 - 39999': 950,
+        '40000 - 44999': 1000,
+        '45000 - 49999': 1100,
+        '50000 - 59999': 1200,
+        '60000 - 69999': 1300,
+        '70000 - 79999': 1400,
+        '80000 - 89999': 1500,
+        '90000 - 99999': 1600,
+    }
+
+    //The for...in loop iterates over object keys which are strings by default
+    for (const key in nhifRanges) {
+        const limits = key.split(' ')
+        const min = parseInt(limits[0])
+        const max = parseInt(limits[2])
+
+        //Check which range the gross salary falls in amongst the object keys
+        const salaryRangeCheck = salaryInRange(grossSalary, min, max)
+
+        //If the function call above returns true, access the value of that key
+        //Bracket notation works to access the value of non-standard keys in objects
+        if (salaryRangeCheck) {
+            nhifRate = nhifRanges[key]
+        }
+    }
+
+    // console.log(`NHIF Rate: ${nhifRate}`)
     return nhifRate
 }
 
